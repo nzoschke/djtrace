@@ -6,7 +6,7 @@ var http = require('http'),
 // Define a single-page client called 'main'
 ss.client.define('main', {
   view: 'app.html',
-  css:  ['libs/reset.css', 'libs/timeline.css', 'app.styl'],
+  css:  ['libs/reset.css', 'libs/timeline.css'],
   code: ['libs/jquery.min.js', 'libs/timeline.js', 'app'],
   tmpl: '*'
 });
@@ -15,12 +15,6 @@ ss.client.define('main', {
 ss.http.route('/', function(req, res){
   res.serveClient('main');
 });
-
-// Code Formatters
-ss.client.formatters.add(require('ss-stylus'));
-
-// Use server-side compiled Hogan (Mustache) templates. Others engines available
-ss.client.templateEngine.use(require('ss-hogan'));
 
 // Minimize and pack assets if you type: SS_ENV=production node app.js
 if (ss.env === 'production') ss.client.packAssets();
@@ -35,7 +29,6 @@ ss.start(server);
 // Connect midi events to socket stream message passing
 setInterval(function() {
   console.log("publishing...")
-  ss.api.publish.all('newMessage', "works?");
   ss.api.publish.all("newTimelineData", {
     'start': new Date(2010,7,26),
     'end': new Date(2010,8,2),
