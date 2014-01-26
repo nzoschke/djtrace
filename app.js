@@ -1,37 +1,25 @@
-// My SocketStream 0.3 app
+var http  = require("http"),
+    ss    = require("socketstream");
 
-var http = require('http'),
-    ss = require('socketstream');
-
-// Define a single-page client called 'main'
-ss.client.define('main', {
-  view: 'app.html',
-  css:  ['libs/reset.css', 'libs/timeline.css'],
-  code: ['libs/jquery.min.js', 'libs/timeline.js', 'app'],
-  tmpl: '*'
+// Define a single-page client called "timeline"
+ss.client.define("timeline", {
+  view: "app.html",
+  css:  ["libs/reset.css", "libs/timeline.css"],
+  code: ["libs/jquery.min.js", "libs/timeline.js", "app"],
+  tmpl: "*"
 });
 
 // Serve this client on the root URL
-ss.http.route('/', function(req, res){
-  res.serveClient('main');
+ss.http.route("/", function(req, res){
+  res.serveClient("timeline");
 });
 
 // Minimize and pack assets if you type: SS_ENV=production node app.js
-if (ss.env === 'production') ss.client.packAssets();
+if (ss.env === "production") ss.client.packAssets();
 
-// Start web server
-var server = http.Server(ss.http.middleware);
-server.listen(3000);
-
-// Start SocketStream
-ss.start(server);
-
-// Connect midi events to socket stream message passing
-setInterval(function() {
-  console.log("publishing...")
-  ss.api.publish.all("newTimelineData", {
-    'start': new Date(2010,7,26),
-    'end': new Date(2010,8,2),
-    'content': 'Traject A'
-  })
-}, 10000)
+// Start web server + socketstram
+exports.listen = function(opts) {
+  var server = http.Server(ss.http.middleware);
+  server.listen(opts.port || 3000);
+  ss.start(server);
+}
