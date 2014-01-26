@@ -20,4 +20,3 @@ midi.listen({
   portName: "djtrace.js",
   cb:       app.publishTimelineData
 })
-
