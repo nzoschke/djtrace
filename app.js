@@ -17,8 +17,15 @@ ss.http.route("/", function(req, res){
 // Minimize and pack assets if you type: SS_ENV=production node app.js
 if (ss.env === "production") ss.client.packAssets();
 
-// Start web server + socketstram
+exports.publishTimelineData = function(message) {
+  ss.api.publish.all("newTimelineData", {
+    'start':    message.ts,
+    'content':  message.artist + " - " + message.title
+  })
+}
+
 exports.listen = function(opts) {
+  // Start web server + socketstram
   var server = http.Server(ss.http.middleware);
   server.listen(opts.port || 3000);
   ss.start(server);
