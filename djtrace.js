@@ -66,8 +66,7 @@ input.on("message", function(deltaTime, message) {
 
         // publis event to socketstream
         ss.api.publish.all("newTimelineData", {
-          'start': new Date(2010,7,26),
-          'end': new Date(2010,8,2),
+          'start': Date.now(),
           'content': result.artist + " - " + result.title
         })
 
