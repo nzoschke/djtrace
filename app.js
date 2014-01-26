@@ -31,3 +31,14 @@ server.listen(3000);
 
 // Start SocketStream
 ss.start(server);
+
+// Connect midi events to socket stream message passing
+setInterval(function() {
+  console.log("publishing...")
+  ss.api.publish.all('newMessage', "works?");
+  ss.api.publish.all("newTimelineData", {
+    'start': new Date(2010,7,26),
+    'end': new Date(2010,8,2),
+    'content': 'Traject A'
+  })
+}, 10000)

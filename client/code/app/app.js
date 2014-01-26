@@ -55,11 +55,6 @@ var data = [
     'content': 'Report'
   },
   {
-    'start': new Date(2010,7,26),
-    'end': new Date(2010,8,2),
-    'content': 'Traject A'
-  },
-  {
     'start': new Date(2010,7,28),
     'content': 'Memo<br><img src="/images/img/notes-edit-icon.png" style="width:48px; height:48px;">'
   },
@@ -99,6 +94,13 @@ links.events.addListener(timeline, 'rangechanged', onRangeChanged);
 
 // Draw our timeline with the created data and options
 timeline.draw(data, options);
+
+ss.event.on("newTimelineData", function(data) {
+  // convert serialized dates back to Date objects
+  if (data.start) data.start = new Date(data.start)
+  if (data.end)   data.end   = new Date(data.end)
+  timeline.addItem(data)
+});
 
 // Private functions
 
