@@ -4,7 +4,8 @@ var fs   = require("fs"),
     path = require("path");
 
 var cb = function(message) { console.log("MIDI DEBUG", message) }
-var loadMessages = []
+var loadMessages  = []
+var openEvents    = {}
 
 exports.openAudioFile = function(fileName, ts) {
   // if no load messages, file opens are from the browser and are ignored
@@ -28,6 +29,7 @@ exports.openAudioFile = function(fileName, ts) {
     console.log("track loaded assignment=" + message[1] + " artist=" + result.artist + " title=" + result.title  + " delta=" + d)
     message.artist = result.artist
     message.title  = result.title
+    message.group  = "Deck " + message[1] + " Load"
     cb(message)
   })
 
@@ -48,11 +50,20 @@ exports.listen = function(opts) {
 
     console.log("midi input on message channel=" + channel + " cc=" + ("000" + cc).slice(-3) + " value=" + ("000" + value).slice(-3) + " ts=" + message.ts)
 
-    // buffer "Deck Is Loaded" messages, to process in openAudioFile callback
-    if (channel == 176 && value==127) {
+    if (channel == 176 && value==127) { // "Deck Is Loaded" events
+      // buffer messages to process in openAudioFile callback
       loadMessages.push(message)
     }
-    else {}
+    else if (channel == 177) { // Play/Pause + Monitor events
+      if (cc >= 0 && cc <= 3) {
+        message.group = "Deck " + message[1] + " Play"
+        if (value == 127) cb(message)
+      }
+      else if (cc >= 4 && cc <= 7) {
+        message.group = "Deck " + (message[1]-4) + " Mon."
+        if (value == 127) cb(message)        
+      }
+    }
   })
 
   console.log("midi input open name=" + portName);

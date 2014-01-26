@@ -8,10 +8,10 @@ var options = {
   'axisOnTop': true,
   'groupsOrder': function(a, b) {
     var groups = [
-      "Deck 0 Load", "Deck 0 Cue", "Deck 0 Play", "Deck 0 Env",
-      "Deck 1 Load", "Deck 1 Cue", "Deck 1 Play", "Deck 1 Env",
-      "Deck 2 Load", "Deck 2 Cue", "Deck 2 Play", "Deck 2 Env",
-      "Deck 3 Load", "Deck 3 Cue", "Deck 3 Play", "Deck 3 Env",
+      "Deck 0 Load", "Deck 0 Play", "Deck 0 Mon.", "Deck 0 Env",
+      "Deck 1 Load", "Deck 1 Play", "Deck 1 Mon.", "Deck 1 Env",
+      "Deck 2 Load", "Deck 2 Play", "Deck 2 Mon.", "Deck 2 Env",
+      "Deck 3 Load", "Deck 3 Play", "Deck 3 Mon.", "Deck 3 Env",
     ]
     return groups.indexOf(a.content) - groups.indexOf(b.content);
   },

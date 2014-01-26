@@ -19,8 +19,9 @@ if (ss.env === "production") ss.client.packAssets();
 
 exports.publishTimelineData = function(message) {
   ss.api.publish.all("newTimelineData", {
-    'start':    message.ts,
-    'content':  message.artist + " - " + message.title
+    "start":    message.ts,
+    "content":  message.artist + " - " + message.title,
+    "group":    message.group
   })
 }
 
