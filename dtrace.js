@@ -15,8 +15,8 @@ exports.consume = function(opts) {
 
   var dtp = new libdtrace.Consumer();
   dtp.strcompile(src);
-  dtp.go();
   console.log("dtrace probe go");
+  dtp.go();
 
   setInterval(function () {
     dtp.aggwalk(function (id, key, val) {
