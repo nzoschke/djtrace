@@ -6,6 +6,9 @@
   "private": true,
   "engines": { "node": ">= 0.6.0" },
   "dependencies": {
+    "libdtrace": "git+https://github.com/postwait/node-libdtrace.git#apple_special",
+    "midi": "~0.7.0",
+    "musicmetadata": "~0.3.1",
     "socketstream": "0.3.x"
   },
   "scripts":{
