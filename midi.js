@@ -4,37 +4,53 @@ var fs   = require("fs"),
     path = require("path");
 
 var cb = function(message) { console.log("MIDI DEBUG", message) }
-var loadMessages  = []
-var openEvents    = {}
+var loadMessages = {}
+var openEvents   = {}
 
 exports.openAudioFile = function(fileName, ts) {
+  console.log("open debug filename=" + fileName + " ts=" + ts)
+
   // if no load messages, file opens are from the browser and are ignored
-  if (loadMessages.length == 0) {
-    console.log("track ignored filename=" + fileName)
+  if (Object.keys(loadMessages).length == 0) {
+    console.log("file ignored filename=" + fileName + " ts=" + ts + " messages={}")
     return false    
   }
 
-  // if load message but much later file open, message was a snapshot and is discarded
-  var message = loadMessages.pop()
-  var d = ts / 1000000 - message.ts
-  if (d > 200) { // TODO: should always be negative?
-    console.log("track ignored filename=" + fileName + " delta=" + d)
-    loadMessages = []
-    return false;
+  // clone the message buffer and process it
+  var messages = JSON.parse(JSON.stringify(loadMessages))
+  for (var mts in messages) {
+    var message = messages[mts]
+    var delta = ts / 1000000 - mts
+    // console.log("message debug message=" + message + " ts=" + mts + " delta=" + delta)
+
+    // if message came shortly after open (500ms), assume they go together
+    if (delta < 0 && delta > -500) {
+      var parser = mm(fs.createReadStream(fileName))
+      parser.on("metadata", function (result) {
+        console.log("track loaded assignment=" + message[1] + " artist=" + result.artist + " title=" + result.title)
+        message.start  = parseInt(mts)
+        message.artist = result.artist[0]
+        message.title  = result.title
+        message.group  = "Deck " + message[1] + " Load"
+        cb(message)
+      })
+
+      // remove processed message from buffer
+      console.log("message processed message=" + message + " ts=" + mts + " delta=" + delta)
+      delete loadMessages[mts]
+    }
+
+    // if message came way before open (5s), assume message window is long past and discard
+    else if (delta > 5000) {
+      console.log("message discarded message=" + message + " ts=" + mts + " delta=" + delta)
+      delete loadMessages[mts]
+    }
+
+    // otherwise assume message window is still open
+    else {
+      console.log("message deferred message=" + message + " ts=" + mts + " delta=" + delta)
+    }
   }
-
-  // message and open are correlated, parse audio file and callback
-  var parser = mm(fs.createReadStream(fileName));
-  parser.on("metadata", function (result) {
-    console.log("track loaded assignment=" + message[1] + " artist=" + result.artist + " title=" + result.title  + " delta=" + d)
-    message.artist = result.artist
-    message.title  = result.title
-    message.group  = "Deck " + message[1] + " Load"
-    cb(message)
-  })
-
-  // clear load messages buffer
-  loadMessages = []
 }
 
 exports.listen = function(opts) {
@@ -43,7 +59,8 @@ exports.listen = function(opts) {
 
   var input = new midi.input();
   input.on("message", function(deltaTime, message) {
-    message["ts"] = Date.now() // track wall time of message
+    message.ts = Date.now() // track wall time of message
+
     var channel = message[0]
     var cc      = message[1]
     var value   = message[2]
@@ -52,7 +69,7 @@ exports.listen = function(opts) {
 
     if (channel == 176 && value==127) { // "Deck Is Loaded" events
       // buffer messages to process in openAudioFile callback
-      loadMessages.push(message)
+      loadMessages[message.ts] = message
     }
     else if (channel == 177) { // Play/Pause + Monitor events
       if (cc >= 0 && cc <= 3) {
@@ -63,6 +80,10 @@ exports.listen = function(opts) {
         message.group = "Deck " + (message[1]-4) + " Mon."
         if (value == 127) cb(message)        
       }
+    }
+    else if (channel == 178) {
+      message.group = "Deck " + (message[1]-4) + " Env."
+      cb(message)
     }
   })
 
