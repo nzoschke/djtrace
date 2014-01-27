@@ -24,7 +24,7 @@ exports.openAudioFile = function(fileName, ts) {
     // console.log("message debug message=" + message + " ts=" + mts + " delta=" + delta)
 
     // if message came shortly after open (500ms), assume they go together
-    if (delta < 0 && delta > -500) {
+    if (delta < 0 && delta > -1000) {
       var parser = mm(fs.createReadStream(fileName))
       parser.on("metadata", function (result) {
         console.log("track loaded assignment=" + message[1] + " artist=" + result.artist + " title=" + result.title)
