@@ -13,28 +13,22 @@ exports.listen = function(opts) {
 
   var input = new midi.input();
   input.on("message", function(deltaTime, message) {
-    message.ts = Date.now() // track wall time of message
-
+    var ts      = Date.now() // track wall time of message
     var channel = message[0]
     var cc      = message[1]
     var value   = message[2]
 
-    console.log("midi message channel=" + channel + " cc=" + ("000" + cc).slice(-3) + " value=" + ("000" + value).slice(-3) + " ts=" + message.ts)
+    console.log("midi message channel=" + channel + " cc=" + ("000" + cc).slice(-3) + " value=" + ("000" + value).slice(-3) + " ts=" + ts)
 
     // Deck Is Loaded events: buffer for external processing
     if (channel == 176) {
-      exports.buffer[message.ts] = message
+      exports.buffer[ts] = message
     }
-    // Monitor events
-    else if (channel == 177) {
-      cb(message)
-    }
-    // Play/Pause events
-    else if (channel == 178) {
-      cb(message)
-    }
-    // Envelope events
-    else if (channel == 179) {
+    // Monitor, Play/Pause or Envelope events
+    else if (channel == 177 || channel == 178 || channel == 179) {
+      message.start   = ts
+      message.content = value
+      message.group   = channel + "," + cc
       cb(message)
     }
   })
