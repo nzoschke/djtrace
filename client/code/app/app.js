@@ -8,13 +8,9 @@ var options = {
   'style': 'box',
   'axisOnTop': true,
   'groupsOrder': function(a, b) {
-    var groups = [
-      "Deck 0 Load", "Deck 0 Play", "Deck 0 Mon.", "Deck 0 Env",
-      "Deck 1 Load", "Deck 1 Play", "Deck 1 Mon.", "Deck 1 Env",
-      "Deck 2 Load", "Deck 2 Play", "Deck 2 Mon.", "Deck 2 Env",
-      "Deck 3 Load", "Deck 3 Play", "Deck 3 Mon.", "Deck 3 Env",
-    ]
-    return groups.indexOf(a.content) - groups.indexOf(b.content);
+    if (a < b) return -1
+    if (a > b) return 1
+    return 0
   },
   'start':  new Date(Date.now() - 60000),   // -1m
   'end':    new Date(Date.now() + 600000),  // +10m
