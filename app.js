@@ -18,11 +18,14 @@ ss.http.route("/", function(req, res){
 if (ss.env === "production") ss.client.packAssets();
 
 exports.publishTimelineData = function(message) {
-  ss.api.publish.all("newTimelineData", {
+  var data =  {
     "start":    message.start,
-    "content":  message.artist + " - " + message.title,
+    "end":      message.end,
+    "content":  message.content,
     "group":    message.group
-  })
+  }
+  console.log("ss publish data=" + JSON.stringify(data))
+  ss.api.publish.all("newTimelineData", data)
 }
 
 exports.listen = function(opts) {

@@ -4,54 +4,8 @@ var fs   = require("fs"),
     path = require("path");
 
 var cb = function(message) { console.log("MIDI DEBUG", message) }
-var loadMessages = {}
-var openEvents   = {}
 
-exports.openAudioFile = function(fileName, ts) {
-  console.log("open debug filename=" + fileName + " ts=" + ts)
-
-  // if no load messages, file opens are from the browser and are ignored
-  if (Object.keys(loadMessages).length == 0) {
-    console.log("file ignored filename=" + fileName + " ts=" + ts + " messages={}")
-    return false    
-  }
-
-  // clone the message buffer and process it
-  var messages = JSON.parse(JSON.stringify(loadMessages))
-  for (var mts in messages) {
-    var message = messages[mts]
-    var delta = ts / 1000000 - mts
-    // console.log("message debug message=" + message + " ts=" + mts + " delta=" + delta)
-
-    // if message came shortly after open (500ms), assume they go together
-    if (delta < 0 && delta > -1000) {
-      var parser = mm(fs.createReadStream(fileName))
-      parser.on("metadata", function (result) {
-        console.log("track loaded assignment=" + message[1] + " artist=" + result.artist + " title=" + result.title)
-        message.start  = parseInt(mts)
-        message.artist = result.artist[0]
-        message.title  = result.title
-        message.group  = "Deck " + message[1] + " Load"
-        cb(message)
-      })
-
-      // remove processed message from buffer
-      console.log("message processed message=" + message + " ts=" + mts + " delta=" + delta)
-      delete loadMessages[mts]
-    }
-
-    // if message came way before open (5s), assume message window is long past and discard
-    else if (delta > 5000) {
-      console.log("message discarded message=" + message + " ts=" + mts + " delta=" + delta)
-      delete loadMessages[mts]
-    }
-
-    // otherwise assume message window is still open
-    else {
-      console.log("message deferred message=" + message + " ts=" + mts + " delta=" + delta)
-    }
-  }
-}
+exports.buffer = {}
 
 exports.listen = function(opts) {
   var portName = opts.portName  || "djtrace.js"
@@ -65,24 +19,22 @@ exports.listen = function(opts) {
     var cc      = message[1]
     var value   = message[2]
 
-    console.log("midi input on message channel=" + channel + " cc=" + ("000" + cc).slice(-3) + " value=" + ("000" + value).slice(-3) + " ts=" + message.ts)
+    console.log("midi message channel=" + channel + " cc=" + ("000" + cc).slice(-3) + " value=" + ("000" + value).slice(-3) + " ts=" + message.ts)
 
-    if (channel == 176 && value==127) { // "Deck Is Loaded" events
-      // buffer messages to process in openAudioFile callback
-      loadMessages[message.ts] = message
+    // Deck Is Loaded events: buffer for external processing
+    if (channel == 176) {
+      exports.buffer[message.ts] = message
     }
-    else if (channel == 177) { // Play/Pause + Monitor events
-      if (cc >= 0 && cc <= 3) {
-        message.group = "Deck " + message[1] + " Play"
-        if (value == 127) cb(message)
-      }
-      else if (cc >= 4 && cc <= 7) {
-        message.group = "Deck " + (message[1]-4) + " Mon."
-        if (value == 127) cb(message)        
-      }
+    // Monitor events
+    else if (channel == 177) {
+      cb(message)
     }
+    // Play/Pause events
     else if (channel == 178) {
-      message.group = "Deck " + (message[1]-4) + " Env."
+      cb(message)
+    }
+    // Envelope events
+    else if (channel == 179) {
       cb(message)
     }
   })

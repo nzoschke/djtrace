@@ -1,9 +1,11 @@
 var libdtrace = require("libdtrace"),
     path      = require("path");
 
-var dSrc      = 'syscall::open*:entry /execname == "Traktor"/ { @[copyinstr(arg0)] = max(walltimestamp); }'
+var dSrc      = 'syscall::open*:entry { @[copyinstr(arg0)] = max(walltimestamp); }'
 var fileExts  = [".mp3", ".wav", ".aiff", ".flac", ".ogg", ".wma", ".aac"]
 var portName  = "djtrace.js"
+
+exports.buffer = {}
 
 exports.consume = function(opts) {
   var execName = opts.execName  || "Traktor"
@@ -20,12 +22,11 @@ exports.consume = function(opts) {
 
   setInterval(function () {
     dtp.aggwalk(function (id, key, val) {
-      if (fileExts.indexOf(path.extname(key[0])) == -1) return;
-      cb(key[0], val)
-      // if (loadMessages.length > 0) {
-      //   emitter.emit("openAudioFile", key[0], val, loadMessages)
-      //   loadMessages = []
-      // }
+      if (fileExts.indexOf(path.extname(key[0])) == -1) return
+      var p  = key[0]
+      var ts = val/1000000
+      console.log("dtrace open path=" + path.basename(p) + " ts=" + ts)
+      exports.buffer[ts] = p
     });
   }, interval);
 }

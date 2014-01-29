@@ -36,13 +36,14 @@ var timeline = new links.Timeline(document.getElementById('mytimeline'));
 timeline.draw(data, options);
 
 ss.event.on("newTimelineData", function(data) {
+  console.log(data)
   // convert serialized dates back to Date objects
-  if (data.start) data.start = new Date(data.start)
-  if (data.end)   data.end   = new Date(data.end)
+  if (data.start) data.start = new Date(parseInt(data.start))
+  if (data.end)   data.end   = new Date(parseInt(data.end))
 
   // update proof-of-concept
   // TODO: set proper IDs on the messages in the backend to keep everything in sync
-  console.log(timeline.getData())
+  //console.log(timeline.getData())
   //var l = timeline.getData().length
   //if (l > 0) timeline.changeItem(l - 1, {end: data.start})
 
