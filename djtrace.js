@@ -22,9 +22,9 @@ midi.listen({
 
 function drainBuffers(dts, mts) {
   var message = midi.buffer[mts]
-  message.start = mts
+  message.start   = mts
   message.content = dtrace.buffer[dts].split("/").slice(-1)[0]
-  message.group = message[0] + "," + message[1]
+  message.group   = message[0] + "," + message[1]
   app.publishTimelineData(message)  // emit correlated event
 
   delete dtrace.buffer[dts]         // modify dtrace buffer
