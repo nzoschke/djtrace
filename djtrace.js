@@ -49,12 +49,12 @@ setInterval(function() {
   if (dts.length == mts.length == 1 && mts[0]-dts[0] > 0 && mts[0]-dts[0] < 5000)
     return drainBuffers(dts[0], mts[0])
 
-  // normal case: a file event is preceeded between -10 and 100ms by an (un)load event
+  // normal case: a file event is preceeded between -100 and 100ms by an (un)load event
   for (var i = 0; i < dts.length; i++) {
     mts = Object.keys(midi.buffer).sort()  // reload midi buffer in case modified
     for (var j = 0; j < mts.length; j++) {
       var delta = dts[i] - mts[j]
-      if (-10 < delta && delta < 100) {
+      if (-100 < delta && delta < 100) {
         drainBuffers(dts[i], mts[j])
         break
       }
