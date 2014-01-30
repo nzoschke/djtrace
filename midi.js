@@ -43,7 +43,7 @@ exports.listen = function(opts) {
     }
 
     // buffer load events to later correlate with open events
-    if (group.match(/^ Load$/)) 
+    if (group.match(/ Load$/)) 
       exports.buffer[ts] = m
 
     // trigger callback for all other events
