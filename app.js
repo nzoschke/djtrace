@@ -19,10 +19,12 @@ if (ss.env === "production") ss.client.packAssets();
 
 exports.publishTimelineData = function(message) {
   var data =  {
-    "start":    message.start,
-    "end":      message.end,
-    "content":  message.content,
-    "group":    message.group
+    "start":      message.start,
+    "end":        message.end,
+
+    "className":  message.className,
+    "content":    message.content,
+    "group":      message.group
   }
   console.log("ss publish data=" + JSON.stringify(data))
   ss.api.publish.all("newTimelineData", data)

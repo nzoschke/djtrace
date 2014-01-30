@@ -3,13 +3,14 @@ var data = [];
 
 // specify options
 var options = {
+  'animate': false,
   'box.align': 'left',
   'cluster': true,
   'style': 'box',
   'axisOnTop': true,
   'groupsOrder': function(a, b) {
-    if (a < b) return -1
-    if (a > b) return 1
+    if (a.content < b.content) return -1
+    if (a.content > b.content) return 1
     return 0
   },
   'start':  new Date(Date.now() - 60000),   // -1m
