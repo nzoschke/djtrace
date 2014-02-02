@@ -9,27 +9,27 @@ exports.midiIO = [
         3:    ["Deck A Mid Adjust",     "Deck A Mix"],
         4:    ["Deck A Low Adjust",     "Deck A Mix"],
         5:    ["Deck A Volume Adjust",  "Deck A Mix"],
-        0:    ["Deck A Cue",            "Deck A Cue"],  // TODO
+        6:    ["Deck A Monitor Cue",    "Deck A Cue"],  // [0,127] toggle
 
         8:    ["Deck B High Adjust",    "Deck B Mix"],
         9:    ["Deck B Mid Adjust",     "Deck B Mix"],
         10:   ["Deck B Low Adjust",     "Deck B Mix"],
         11:   ["Deck B Volume Adjust",  "Deck B Mix"],
-        0:    ["Deck B Cue",            "Deck B Cue"],
+        12:   ["Deck B Monitor Cue",    "Deck B Cue"],
 
         13:   ["Deck C High Adjust",    "Deck C Mix"],
         14:   ["Deck C Mid Adjust",     "Deck C Mix"],
         15:   ["Deck C Low Adjust",     "Deck C Mix"],
         16:   ["Deck C Volume Adjust",  "Deck C Mix"],
-        0:    ["Deck C Cue",            "Deck C Cue"],
+        17:   ["Deck C Monitor Cue",    "Deck C Cue"],
 
         18:   ["Deck D High Adjust",    "Deck D Mix"],
         19:   ["Deck D Mid Adjust",     "Deck D Mix"],
         20:   ["Deck D Low Adjust",     "Deck D Mix"],
         21:   ["Deck D Volume Adjust",  "Deck D Mix"],
-        0:    ["Deck D Cue",            "Deck D Cue"],
+        22:   ["Deck D Monitor Cue",    "Deck D Cue"],
 
-        22:   ["X-Fader",               "Cross Fader"],
+        23:   ["X-Fader",               "Cross Fader"],
 
         103:  ["Deck A Is Loaded",      "Deck A Load"],  // [0,127] toggle
         104:  ["Deck B Is Loaded",      "Deck B Load"],
@@ -47,7 +47,7 @@ exports.midiIO = [
     // Denon DN-X1600 in Layer Mode
     // http://www.dm-pro.eu/DocumentMaster/en/DN-X1600_manual_en.pdf
     // Page 20
-    name: "USB MIDI Device Port 1",
+    name: "USB MIDI Device Port 1",               // TODO: Require explicit rename in "Audio MIDI Setup"?
     port: 0,
     channels: {
       176: {                                      // 0xBn in manual
