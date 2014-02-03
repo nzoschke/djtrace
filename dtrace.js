@@ -23,10 +23,7 @@ exports.consume = function(opts) {
   setInterval(function () {
     dtp.aggwalk(function (id, key, val) {
       if (fileExts.indexOf(path.extname(key[0])) == -1) return
-      var p  = key[0]
-      var ts = val/1000000
-      console.log("dtrace open path=" + path.basename(p) + " ts=" + ts)
-      exports.buffer[ts] = p
+      cb({content: key[0], group: "Audio File Open", start: val/1000000})
     });
   }, interval);
 }

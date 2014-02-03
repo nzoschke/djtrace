@@ -4,3 +4,4 @@ dump.rdb
 npm-debug.log
 tmp
 client/static/assets
+djtrace.sqlite3

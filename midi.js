@@ -36,19 +36,6 @@ exports.listen = function(opts) {
     console.log("midi message channel=" + message[0] + " cc=" + ("000" + message[1]).slice(-3) + " val=" + ("000" + message[2]).slice(-3) + " ts=" + ts + " group=" + group + " name=" + name)
     if (!group) return
 
-    var m = {
-      start:    ts,
-      content:  message[2],
-      group:    group,
-    }
-
-    // buffer load events to later correlate with open events
-    if (group.match(/ Load$/)) 
-      exports.buffer[ts] = m
-
-    // trigger callback for all other events
-    else 
-      cb(m)
+    cb({content: message[2], group: group, start: ts})
   })
-
 }
