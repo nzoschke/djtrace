@@ -18,8 +18,9 @@ var options = {
   // 'groupsWidth': 1000
 };
 
-// Instantiate our timeline object.
+// Instantiate our timeline object and draw with options
 var timeline = new links.Timeline(document.getElementById('mytimeline'));
+timeline.draw(data, options)
 
 // function onRangeChanged(properties) {
 //     document.getElementById('info').innerHTML += 'rangechanged ' +
@@ -29,22 +30,26 @@ var timeline = new links.Timeline(document.getElementById('mytimeline'));
 // attach an event listener using the links events handler
 // links.events.addListener(timeline, 'rangechanged', onRangeChanged);
 
-// Draw our timeline with the created data and options
-timeline.draw(data, options);
+function addRangeItems(ranges) {
+    for(var i = 0; i < ranges.length; i++) {
+    timeline.addItem({
+      start:      ranges[i].start,
+      end:        ranges[i].end,
+      group:      ranges[i].grp,
+      content:    ranges[i].content,
+      className:  ranges[i].className
+    })
+  }
+}
 
-ss.event.on("newTimelineData", function(data) {
-  console.log(data)
-  // convert serialized dates back to Date objects
-  if (data.start) data.start = new Date(parseInt(data.start))
-  if (data.end)   data.end   = new Date(parseInt(data.end))
+links.events.addListener(timeline, "ready", function(e) {
+  ss.rpc("ranges.load", Date.now() - 100000000, function(ranges) { // TODO: more reasonable past window
+    console.log("ranges.load", ranges)
+    addRangeItems(ranges)
+  })
+})
 
-  // update proof-of-concept
-  // TODO: set proper IDs on the messages in the backend to keep everything in sync
-  //console.log(timeline.getData())
-  //var l = timeline.getData().length
-  //if (l > 0) timeline.changeItem(l - 1, {end: data.start})
-
-  // insert new data
-  timeline.addItem(data)
-
-});
+ss.event.on("ranges.new", function(ranges) {
+  console.log("ranges.new", ranges)
+  addRangeItems(ranges)
+})

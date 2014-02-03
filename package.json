@@ -12,7 +12,8 @@
     "midi": "~0.7.0",
     "musicmetadata": "~0.3.1",
     "socketstream": "0.3.x",
-    "sqlite3": "~2.2.0"
+    "sqlite3": "~2.2.0",
+    "underscore": "~1.5.2"
   },
   "scripts": {
     "start": "sudo node djtrace.js"

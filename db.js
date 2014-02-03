@@ -1,3 +1,4 @@
+var       _ = require('underscore')
 var sqlite3 = require("sqlite3").verbose()
 
 var db = new sqlite3.Database("./djtrace.sqlite3")
@@ -13,6 +14,13 @@ db.serialize(function() {
   db.run("CREATE TABLE IF NOT EXISTS ranges (id INTEGER PRIMARY KEY ASC, start REAL, end REAL, grp TEXT, content TEXT, className TEXT);")
 })
 
+exports.selectEvents = function(start, cb) {
+  db.all(" SELECT * FROM ranges WHERE start > ? ORDER BY start", start, function(err, rows) {
+    console.log(err)
+    cb(rows)
+  })
+}
+
 exports.saveEvent = function(event) {
   db.run(
     "INSERT INTO events VALUES (null, ?, ?, ?, null)", 
@@ -25,32 +33,82 @@ exports.processEvents = function(opts) {
   var cb       = opts.cb        || function(row) { console.log("SQL DEBUG", row) }
 
   setInterval(function() {
+    // Process Audio File Opens by correlating to a recent Deck Load (or ignoring)
+    // TODO: Proper serialzation, BEGIN ... END
+    // https://github.com/Strix-CZ/sqlite3-transactions ?
+    db.each("SELECT * FROM events WHERE grp='Audio File Open' AND rangeId IS NULL ORDER BY start", function(err, openEvent) {
+      db.all("SELECT * FROM events WHERE grp LIKE 'Deck _ Load' AND start BETWEEN ? AND ? ORDER BY start",
+        openEvent.start - 500, openEvent.start + 500,
+        function(err, loadEvents) {
+          if (err || loadEvents.length == 0) return
 
-    db.each("SELECT * FROM events WHERE grp='Audio File Open' AND rangeId IS NULL", function(err, row) {
-      db.all("SELECT * FROM events WHERE grp LIKE 'Deck _ Load' AND start BETWEEN ? AND ?",
-        row.start - 500, row.start + 500,
-        function(err, rows) {
-          if (rows.length == 0) return
-          if (rows.length  > 1) console.log("SQL DEBUG Audio File Open -> Deck Load", rows)
+          var grps = _.uniq(_.pluck(loadEvents, "grp"))
+          if (grps.length > 1)        console.log("SQL DEBUG Audio File Open -> Deck Load", loadEvents)
+          if (loadEvents.length > 2)  console.log("SQL DEBUG Audio File Open -> Deck Load", loadEvents)
 
-          // create a range, and link events to it
-          // TODO: BEGIN ... END
-          db.run("INSERT INTO ranges VALUES (null, ?, null, ?, ?, null)",
-            row.start, rows[0].grp, row.content,
+          var unloadEvent = _.find(loadEvents, function(r) { return r.content == "0"   })
+          var loadEvent   = _.find(loadEvents, function(r) { return r.content == "127" })
+
+          // end a range, if exists
+          var endEvent = unloadEvent || loadEvent
+          db.run(
+            "UPDATE ranges SET end = ? WHERE grp = ? AND end IS NULL",
+            endEvent.start, endEvent.grp
+          )
+
+          // start a new range
+          var startEvent = loadEvent || unloadEvent
+          db.run("INSERT INTO ranges (start, grp, content) VALUES (?, ?, ?)",
+            startEvent.start, startEvent.grp, openEvent.content,
             function(err) {
-              console.log(err, this.lastID)
-              db.run("UPDATE events SET rangeID = ? WHERE id = ?", this.lastID, row.id)
-              db.run("UPDATE events SET rangeID = ? WHERE id = ?", this.lastID, rows[0].id)
+              if (err) { 
+                console.log("SQL DEBUG ERROR", err)
+                return
+              }
+
+              // link all source events to new range
+              var ids = _.pluck(loadEvents, "id")
+              ids.push(openEvent.id)
+              db.run("UPDATE events SET rangeID = ? WHERE id IN (" + ids.join(",") + ")", this.lastID)
+
+              // callback with new range
+              db.all("SELECT * FROM ranges WHERE id IN (" + this.lastID + ")", function(err, ranges) {
+                cb(ranges)
+              })
             }
           )
         }
       )
     })
 
-    // TOOD: Collapse midi events into less granular ranges
+
+
+
+    // new event comes in
+    // it can start a new group
+    // it can end an existing group
+    // it can update a group
+    //   noop if value hasnt changed
+    //   append if value has changed
+
+    // special cases
+    // unload: closes load, seek, 
+    // load: 0 -> end
+    // seek: >0 : start
+    // crossfader: 0 - 31: A, 32 - 94: A+B, 95 - 127: B
+    // var now = Date.now()
+    // db.each("SELECT * FROM events WHERE rangeID IS NULL ORDER BY start", function(err, row) {
+    //   "SELECT * FROM ranges WHERE end = null AND grp = ?"
+
+    //   // ignore and expire events <10s old
+    //   if (row.start < now - 10000)
+    //     return db.run("UPDATE events SET rangeID = -10 WHERE id = ?", row.id)
+    // })
+    
+    // SELECT grp, MIN(start), MAX(start), GROUP_CONCAT(content, ",") FROM events WHERE rangeID IS NULL GROUP BY grp, round(start/10000);
 
     // TODO: expire remaining events more than 10s old
-    //db.run("UPDATE events SET rangeID = -1 WHERE start < ?", Date.now() - 10000)
+    //db.run("UPDATE events SET rangeID = -10 WHERE start < ?", Date.now() - 10000)
   }, interval)
 }
 
