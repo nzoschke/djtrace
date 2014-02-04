@@ -24,7 +24,7 @@ exports.listen = function(opts) {
   })
 
   input.on("message", function(deltaTime, message) {
-    var ts      = Date.now() // track wall time of message
+    var ts = Date.now() // track wall time of message
 
     var name  = null
     var group = null
